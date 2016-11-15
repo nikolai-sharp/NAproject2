@@ -124,7 +124,8 @@ class EulerBernoulliBeam:
         """y(x) represents the correct solution for step 2 where x = L (end of the beam) and f is constant"""
         # y(x) = (f / (24*E*I)x^2(x^2 - 4*L*x + 6*L^2)
         return (self.fConst() / (24.0*self.E*self.I)) * pow(x, 2) * (pow(x, 2) - 4.0*self.length*x + 6.0*pow(self.length, 2))
-
+          
+        
     def Activity1(self):
         """Activity 1 - Solve for each Y"""
         # A*y = b , solve for y
@@ -137,17 +138,29 @@ class EulerBernoulliBeam:
 
         self.y = np.linalg.solve(self.A, b)
 
-    def Activity2(self):
+    def Activity2(self, printer):
         """Activity 2 - Plot Solution from step 1 agains the correct solution and check the error at the end of the beam"""
 
         # TODO: Plot solution from step 1 with yi = self.y[i][0] and xi = self.x[i] for i = 0,...n-1
 
         y_L = self.y_x(self.length) # Calculate the correct solution at the end of the beam
-        print 'y(',self.length,') =\t',y_L
-        print 'Calculated y:\t',self.y[self.n-1][0]
-        print 'Error = \t', abs(y_L - self.y[self.n-1][0])
+        if (printer == 5):
+            print 'y(',self.length,') =\t',y_L
+            print 'Calculated y:\t',self.y[self.n-1][0]
+            print 'Error = \t', abs(self.y[self.n-1][0] - y_L)
+        return (abs(self.y[self.n-1][0] - y_L))
 
-
+    def Activity3(self):
+        print 'n \t\t k \t\t error \n'
+        for k in range (1, 12):
+            changingN = 10 * (pow(2,k))
+            EBB = EulerBernoulliBeam(2.0, 0.3, 0.03, changingN )
+            EBB.Activity1()
+            
+            error = EBB.Activity2(0)
+            print changingN, '\t\t', k , '\t\t', error
+        
+        
 # Tests
 
 # Activity 1
@@ -159,5 +172,9 @@ print '\n'
 
 # Activity 2
 print 'Activity 2:'
-EBB.Activity2()
+EBB.Activity2(5)
 print '\n'
+
+# Activity 3
+print 'Activity 3:'
+EBB.Activity3()
