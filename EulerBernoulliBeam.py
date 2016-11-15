@@ -10,6 +10,7 @@
 #   Kaiqi Zhang
 
 import numpy as np
+import matplotlib.pyplot as plt
 
 class EulerBernoulliBeam:
     def __init__(self, length, width, depth, n):
@@ -41,8 +42,9 @@ class EulerBernoulliBeam:
 
     def setN(self, n):
         self.n = n
-        self.initA() # Reinitialize A
-        self.setH() # Update h
+        self.initA()    # Reinitialize A
+        self.setH()     # Update h
+        self.initX()    # Reinitialize X
 
     def setH(self):
         self.h = self.length / float(self.n)
@@ -56,9 +58,9 @@ class EulerBernoulliBeam:
     def initX(self):
         self.x = []
         temp = 0
-        for i in range(self.n):
-            temp += self.h # x_n = x_n-1 + h
+        for i in range(self.n+1):
             self.x.append(temp)
+            temp += self.h # x_n = x_n-1 + h
         if (self.debug): print 'X: ',self.x
 
 
@@ -121,13 +123,32 @@ class EulerBernoulliBeam:
         return -480.0*self.width*self.depth*self.g
 
     def y_x(self, x):
-        """y(x) represents the correct solution for step 2 where x = L (end of the beam) and f is constant"""
+        """y(x) represents the correct solution where f is constant"""
         # y(x) = (f / (24*E*I)x^2(x^2 - 4*L*x + 6*L^2)
-        return (self.fConst() / (24.0*self.E*self.I)) * pow(x, 2) * (pow(x, 2) - 4.0*self.length*x + 6.0*pow(self.length, 2))
+        if x == 0:
+            return 0
+        else:
+            return (self.fConst() / (24.0*self.E*self.I)) * pow(x, 2) * (pow(x, 2) - 4.0*self.length*x + 6.0*pow(self.length, 2))
           
-        
+    def plotA2(self):
+        plt.plot(self.x, self.yCalculated, '-r', label='Calculated')
+        plt.plot(self.x, self.yActual, '-b', label='Actual')
+        plt.legend(loc='lower left')
+        plt.show()
+
+    def endError(self):
+        """Calculate error at end of beam - Activity1() & calcYActual() must be executed to check error"""
+        return abs(self.yCalculated[-1] - self.yActual[-1])
+
+    def calcYActual(self):
+        self.yActual = []
+        for i in self.x:
+            self.yActual.append(self.y_x(i)) # Calculate the correct solution at each x_i
+
     def Activity1(self):
         """Activity 1 - Solve for each Y"""
+        self.yCalculated = [0.0]
+
         # A*y = b , solve for y
         # bi = ( h^4/(E*I) )*f(xi)
         b = np.zeros(shape=(self.n,1)) # Initialize b as an nx1 matrix with each entry set to zero
@@ -136,28 +157,26 @@ class EulerBernoulliBeam:
         for i in range(self.n):
             b[i][0] = bi
 
-        self.y = np.linalg.solve(self.A, b)
+        yTemp = np.linalg.solve(self.A, b)
 
-    def Activity2(self, printer):
+        for i in yTemp:
+            self.yCalculated.append(i[0])
+
+    def Activity2(self):
         """Activity 2 - Plot Solution from step 1 agains the correct solution and check the error at the end of the beam"""
-
-        # TODO: Plot solution from step 1 with yi = self.y[i][0] and xi = self.x[i] for i = 0,...n-1
-
-        y_L = self.y_x(self.length) # Calculate the correct solution at the end of the beam
-        if (printer == 5):
-            print 'y(',self.length,') =\t',y_L
-            print 'Calculated y:\t',self.y[self.n-1][0]
-            print 'Error = \t', abs(self.y[self.n-1][0] - y_L)
-        return (abs(self.y[self.n-1][0] - y_L))
+        self.calcYActual()
+        print 'End of Beam Error:',self.endError()
+        self.plotA2()
 
     def Activity3(self):
         print 'n \t\t k \t\t error \n'
         for k in range (1, 12):
             changingN = 10 * (pow(2,k))
-            EBB = EulerBernoulliBeam(2.0, 0.3, 0.03, changingN )
-            EBB.Activity1()
+            self.setN(changingN)
+            self.Activity1()
+            self.calcYActual()
             
-            error = EBB.Activity2(0)
+            error = self.endError()
             print changingN, '\t\t', k , '\t\t', error
         
         
@@ -167,12 +186,14 @@ class EulerBernoulliBeam:
 print 'Activity 1:'
 EBB = EulerBernoulliBeam(2.0, 0.3, 0.03, 10)
 EBB.Activity1()
-print 'Y_i:\n',EBB.y
+print 'Y_i:'
+for i in EBB.yCalculated:
+    print '[',i,']'
 print '\n'
 
 # Activity 2
 print 'Activity 2:'
-EBB.Activity2(5)
+EBB.Activity2()
 print '\n'
 
 # Activity 3
