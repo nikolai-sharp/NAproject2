@@ -208,6 +208,8 @@ class EulerBernoulliBeam:
         for i in yTemp:
             self.yCalculated.append(i[0])
 
+        print 'Deflection at x = L:',self.yCalculated[-1]
+
         self.plotA6()
         
 # Tests
