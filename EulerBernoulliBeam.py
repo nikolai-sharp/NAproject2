@@ -136,6 +136,10 @@ class EulerBernoulliBeam:
         plt.legend(loc='lower left')
         plt.show()
 
+    def plotA6(self):
+        plt.plot(self.x, self.yCalculated, '-r')
+        plt.show()
+
     def endError(self):
         """Calculate error at end of beam - Activity1() & calcYActual() must be executed to check error"""
         return abs(self.yCalculated[-1] - self.yActual[-1])
@@ -179,6 +183,32 @@ class EulerBernoulliBeam:
             error = self.endError()
             print changingN, '\t\t', k , '\t\t', error
         
+    def Activity6(self):
+        """Activity 6 - Solve for each Y with a 70kg diver balancing on the last 20cm of the beam"""
+        
+        # TODO: set optimal n based on results from Activity 5
+        self.setN(1280) # ***Temporary - Referenced from http://mason.gmu.edu/~zzerhoun/Math447.rc2.5
+
+        self.yCalculated = [0.0]
+
+        # A*y = b , solve for y
+        # bi = ( h^4/(E*I) )*f(xi)
+        b = np.zeros(shape=(self.n,1)) # Initialize b as an nx1 matrix with each entry set to zero
+        bi = (pow(self.h, 4) / ( self.E * self.I ))*self.fConst() # Calcualte each entry in b (assuming f(x1)=f(x2)=...=f(xn)=fConst() and x < 1.8)
+        bi_diver = (pow(self.h, 4) / ( self.E * self.I ))*(self.fConst()-self.g*70.0/0.2) # Calcualte each entry in b (assuming f(x1)=f(x2)=...=f(xn)=fConst() and 1.8 <= x <= 2.0)
+
+        for i in range(self.n):
+            if self.x[i+1] >= 1.8 and self.x[i+1] <= 2.0: # Diver present
+                b[i][0] = bi_diver
+            else:
+                b[i][0] = bi
+
+        yTemp = np.linalg.solve(self.A, b)
+
+        for i in yTemp:
+            self.yCalculated.append(i[0])
+
+        self.plotA6()
         
 # Tests
 
@@ -199,3 +229,7 @@ print '\n'
 # Activity 3
 print 'Activity 3:'
 EBB.Activity3()
+
+# Activity 6
+print 'Activity 6:'
+EBB.Activity6()
