@@ -235,3 +235,6 @@ EBB.Activity3()
 # Activity 6
 print 'Activity 6:'
 EBB.Activity6()
+
+# Activity 7
+print 'Activity 7:'
